@@ -10,9 +10,11 @@ Installation:
 3. Look for: <ItemGroup>
 4. Below it insert:
 
+```
 <PackageReference Include="DSharpPlus" Version="3.2.3" />
 <PackageReference Include="DSharpPlus.WebSocket.WebSocket4Net" Version="3.2.3" />
 <PackageReference Include="DSharpPlus.WebSocket.WebSocketSharp" Version="3.2.3" />
+```
 
 5. In the base server folder run the following command: dotnet restore
 6. Recompile the server
