@@ -49,15 +49,15 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 			CommandSystem.Register("linkaccount", AccessLevel.Player, new CommandEventHandler(LinkAccountIngame));
 		}
 
-		public void Invoke(DClient client, CommandHandler handler, CommandEventArgs args)
+		public void Invoke(CommandHandler handler, CommandEventArgs args)
 		{
-			if (DClient.Instance.UserManager[args.Member.Id] != null)
+			if (DClient.UserManager[args.Member.Id] != null)
 			{
 				args.Channel.SendMessageAsync("You already linked your account!");
 				return;
 			}
 
-			var dmChannel = client.GetDmChanelAsync(args.User.Id).ConfigureAwait(false).GetAwaiter().GetResult();
+			var dmChannel = DClient.GetDmChanelAsync(args.User.Id).ConfigureAwait(false).GetAwaiter().GetResult();
 
 			if (_verificationUsers.TryGetValue(args.User.Id, out string verCode))
 			{
@@ -82,6 +82,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 			_verificationUsers.TryAdd(args.User.Id, verCode);
 
 			dmChannel.SendMessageAsync($"Verification code created, login onto any of your characters (in UO) and type the following (Code is Case-Sensitive): [linkaccount {verCode}");
+			args.Message.DeleteAsync().ConfigureAwait(false);
 		}
 
 		void LinkAccountIngame(Server.Commands.CommandEventArgs e)
@@ -93,7 +94,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 			}
 
 			Accounting.Account acc = e.Mobile.Account as Accounting.Account;
-			DiscordUserLink dul = DClient.Instance.UserManager[acc];
+			DiscordUserLink dul = DClient.UserManager[acc];
 
 			if (dul != null && dul.DiscordUserId == 0)
 			{
@@ -104,7 +105,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 				dul = new DiscordUserLink(acc, userId);
 			}
 
-			DClient.Instance.UserManager.AddOrUpdate(dul);
+			DClient.UserManager.AddOrUpdate(dul);
 			e.Mobile.SendMessage("You successfully linked your account to user discord account");
 		}
 

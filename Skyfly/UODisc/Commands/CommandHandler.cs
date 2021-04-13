@@ -87,9 +87,13 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 
 				command = command.TrimStart(CommandPrefix);
 
-				AccessLevel access = DClient.Instance.UserManager.GetAccessLevel(e.Author.Id);
+				AccessLevel access = DClient.UserManager.GetAccessLevel(e.Author.Id);
 
-				if (!_commands.TryGetValue(command.ToLower(), out ICommand cmd))
+				//Return when command channel is set, we are outside of it and have accesslevel vip or lower
+				//Return when we cannot find the command itself
+				//Return when the command is disabled
+				if ((access <= AccessLevel.VIP && DClient.Settings.CommandChannelId != 0 && DClient.Settings.CommandChannelId != e.Channel.Id) ||
+					!_commands.TryGetValue(command.ToLower(), out ICommand cmd))
 					return;
 				else if (cmd.IsDisabled)
 				{
@@ -163,7 +167,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 				{
 					try
 					{
-						cmd.Invoke(DClient.Instance, this, arg);
+						cmd.Invoke(this, arg);
 					}
 #pragma warning disable CA1031 // Do not catch general exception types
 					catch (Exception ex)
@@ -203,12 +207,37 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 			string cmdName = cmd.Command.ToLower();
 
 			if (_commands.ContainsKey(cmdName))
+			{
+				Utility.PushColor(ConsoleColor.Cyan);
+				Console.WriteLine($"Discord: Command {cmdName} already exists, skipping...");
+				Utility.PopColor();
 				return;
+			}
+
+			for (int i = 0; i < cmdName.Length; i++)
+			{
+				if (cmdName[i] == ' ')
+				{
+					Utility.PushColor(ConsoleColor.Cyan);
+					Console.WriteLine($"Discord: Command {cmdName} contains illegal character \" \", skipping...");
+					Utility.PopColor();
+
+					return;
+				}
+				else if (!char.IsLetterOrDigit(cmdName[i]))
+				{
+					Utility.PushColor(ConsoleColor.Cyan);
+					Console.WriteLine($"Discord: Command {cmdName} contains illegal character \"{cmdName[i]}\", skipping...");
+					Utility.PopColor();
+
+					return;
+				}
+			}
 
 			_commands.Add(cmdName, cmd);
 
 			Utility.PushColor(ConsoleColor.Cyan);
-			Console.WriteLine("Registered command " + cmdName);
+			Console.WriteLine($"Discord: Registered command {cmdName}");
 			Utility.PopColor();
 		}
 

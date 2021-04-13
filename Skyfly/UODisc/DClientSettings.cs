@@ -20,6 +20,10 @@ namespace Server.Custom.Skyfly.UODisc
 		/// </summary>
 		public ulong GuildId { get; set; }
 		/// <summary>
+		/// Discord Command Channel Id
+		/// </summary>
+		public ulong CommandChannelId { get; set; }
+		/// <summary>
 		/// Discord Command Prefix
 		/// </summary>
 		public char CommandPrefix { get; set; }
@@ -30,10 +34,11 @@ namespace Server.Custom.Skyfly.UODisc
 		/// <param name="token">Discord Token</param>
 		/// <param name="guildId">Discord Guild Id</param>
 		/// <param name="commandPrefix">Discord Command Prefix</param>
-		public DClientSettings(string token, ulong guildId, char commandPrefix = '!') : this()
+		public DClientSettings(string token, ulong guildId, ulong commandChannelId, char commandPrefix = '!') : this()
 		{
 			Token = token;
 			GuildId = guildId;
+			CommandChannelId = commandChannelId;
 			CommandPrefix = commandPrefix;
 		}
 	}

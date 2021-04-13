@@ -33,6 +33,6 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 		/// </summary>
 		int MinParameters { get; }
 
-		void Invoke(DClient client, CommandHandler handler, CommandEventArgs args);
+		void Invoke(CommandHandler handler, CommandEventArgs args);
 	}
 }

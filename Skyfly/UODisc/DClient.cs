@@ -11,38 +11,100 @@ using Server.Custom.Skyfly.UODisc.Commands;
 
 namespace Server.Custom.Skyfly.UODisc
 {
-	public sealed class DClient
+	public static class DClient
 	{
-		public static DClient Instance { get; private set; }
 		public static string SaveFolder => System.IO.Path.Combine(Environment.CurrentDirectory, "Saves", "Discord");
 
-		public DClientSettings Settings { get; private set; }
-		public bool IsReady { get; private set; }
-		public DiscordUserManager UserManager => _userMgr;
-		public CommandHandler CommandHandler => _cmdHandler;
+		public static DClientSettings Settings { get; private set; }
+		public static bool IsReady { get; private set; }
+		public static DiscordUserManager UserManager => _userMgr;
+		public static CommandHandler CommandHandler => _cmdHandler;
+		public static bool IsDisabled { get; private set; }
 
-		static bool _doesClientExist;
 		static readonly string _saveFile = System.IO.Path.Combine(SaveFolder, "Client.bin");
 
-		DiscordClient _dclient;
-		DiscordUserManager _userMgr;
-		CommandHandler _cmdHandler;
+		static DiscordClient _dclient;
+		static DiscordUserManager _userMgr;
+		static CommandHandler _cmdHandler;
 
-		DClient(DClientSettings settings)
+		public static void Initialize()
 		{
-			if (_doesClientExist)
-				throw new NotImplementedException("Multiple instances of DClient is currently not supported");
+			var entry = Config.Find("Discord.Token");
 
-			_doesClientExist = true;
-			Settings = settings;
+			if (entry == null)
+			{
+				Utility.PushColor(ConsoleColor.Red);
+				Console.WriteLine("Discord: Config not found, autogenerating...");
+				Utility.PopColor();
+
+				Config.Set("Discord.Token", "Your Discord Bot Token");
+				Config.Set("Discord.GuildId", 0ul);
+				Config.Set("Discord.CommandPrefix", "!");
+				Config.Set("Discord.CommandChannelId", 0ul);
+
+				Config.Save();
+
+				Utility.PushColor(ConsoleColor.Red);
+				Console.WriteLine("Discord: Config generated, disabling discord for this run...");
+				Utility.PopColor();
+
+				IsDisabled = true;
+				return;
+			}
+
+			string token = Config.Get("Discord.Token", string.Empty);
+
+			if (string.IsNullOrEmpty(token) || token.Equals("Your Discord Bot Token"))
+			{
+				Utility.PushColor(ConsoleColor.Red);
+				Console.WriteLine("Discord: Invalid token, disabling discord...");
+				Utility.PopColor();
+
+				IsDisabled = true;
+				return;
+			}
+
+			ulong guildId = Config.Get("Discord.GuildId", 0ul);
+
+			if (guildId == 0)
+			{
+				Utility.PushColor(ConsoleColor.Red);
+				Console.WriteLine("Discord: Invalid guild id, disabling discord...");
+				Utility.PopColor();
+
+				IsDisabled = true;
+				return;
+			}
+
+			char cmdPrefix = Config.Get("Discord.CommandPrefix", "!")[0];
+
+			if (cmdPrefix == char.MinValue || cmdPrefix == char.MaxValue || char.IsLetterOrDigit(cmdPrefix))
+			{
+				Utility.PushColor(ConsoleColor.Red);
+				Console.WriteLine("Discord: Invalid command prefix, disabling discord...");
+				Utility.PopColor();
+
+				IsDisabled = true;
+				return;
+			}
+
+			ulong commandChannelId = Config.Get("Discord.CommandChannelId", 0ul);
+
+			if (commandChannelId == 0)
+			{
+				Utility.PushColor(ConsoleColor.Red);
+				Console.WriteLine("Discord: Invalid command channel id, disabling discord...");
+				Utility.PopColor();
+
+				IsDisabled = true;
+				return;
+			}
+
+			Settings = new DClientSettings(token, guildId, commandChannelId, cmdPrefix);
 			_userMgr = new DiscordUserManager();
-			_cmdHandler = new CommandHandler(settings.CommandPrefix);
-		}
+			_cmdHandler = new CommandHandler(cmdPrefix);
 
-		public static void Configure()
-		{
-			Instance = new DClient(new DClientSettings("ODMwOTQ5MDI0MDMzOTMxMzI0.YHOHlQ.C0K2cFmhbkmWNxsINdIbpVgBbXE", 763438725345968138));
-			Instance.Start();
+			Start();
 
 			Server.Commands.CommandSystem.Register("discordlink", AccessLevel.GameMaster, new Server.Commands.CommandEventHandler(e =>
 			{
@@ -53,42 +115,39 @@ namespace Server.Custom.Skyfly.UODisc
 				}
 
 				Accounting.Account acc = e.Mobile.Account as Accounting.Account;
-				DiscordUserLink dul = Instance.UserManager[acc];
+				DiscordUserLink dul = UserManager[acc];
 
 				if (dul == null)
 					dul = new DiscordUserLink(acc, id);
 				else
 					dul.DiscordUserId = id;
 
-				Instance.UserManager.AddOrUpdate(dul);
+				UserManager.AddOrUpdate(dul);
 			}));
-		}
 
-		public static void Initialize()
-		{
 			//I don't know any other way to load this after the accounts have been loaded
 			//so we will load this after the world has been loaded
-			Instance.Load();
+			Load();
 
-			Instance._dclient.ConnectAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+			_dclient.ConnectAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 		}
 
-		public async Task<DiscordChannel> GetChannelAsync(ulong id)
+		public static async Task<DiscordChannel> GetChannelAsync(ulong id)
 		{
 			return await RunSafeAsync(async () => await _dclient.GetChannelAsync(id).ConfigureAwait(false)).ConfigureAwait(false);
 		}
 
-		public async Task<DiscordGuild> GetGuildAsync()
+		public static async Task<DiscordGuild> GetGuildAsync()
 		{
 			return await RunSafeAsync(async () => await _dclient.GetGuildAsync(Settings.GuildId).ConfigureAwait(false)).ConfigureAwait(false);
 		}
 
-		public async Task<DiscordMessage> GetMessageAsync(DiscordChannel channel, ulong id)
+		public static async Task<DiscordMessage> GetMessageAsync(DiscordChannel channel, ulong id)
 		{
 			return await RunSafeAsync(async () => await channel.GetMessageAsync(id).ConfigureAwait(false)).ConfigureAwait(false);
 		}
 
-		public async Task<DiscordMessage> GetMessageAsync(ulong channelId, ulong msgId)
+		public static async Task<DiscordMessage> GetMessageAsync(ulong channelId, ulong msgId)
 		{
 			DiscordChannel channel = await GetChannelAsync(channelId).ConfigureAwait(false);
 
@@ -98,7 +157,7 @@ namespace Server.Custom.Skyfly.UODisc
 			return await GetMessageAsync(channel, msgId).ConfigureAwait(false);
 		}
 
-		public async Task<bool> SendMessageAsync(ulong channelId, string message = null, DiscordEmbed embed = null)
+		public static async Task<bool> SendMessageAsync(ulong channelId, string message = null, DiscordEmbed embed = null)
 		{
 			DiscordChannel channel = await GetChannelAsync(channelId).ConfigureAwait(false);
 
@@ -109,7 +168,7 @@ namespace Server.Custom.Skyfly.UODisc
 			return true;
 		}
 
-		public async Task<bool> ModifyMessageAsync(ulong channelId, ulong msgId, string message = null, DiscordEmbed embed = null)
+		public static async Task<bool> ModifyMessageAsync(ulong channelId, ulong msgId, string message = null, DiscordEmbed embed = null)
 		{
 			DiscordMessage msg = await GetMessageAsync(channelId, msgId).ConfigureAwait(false);
 
@@ -121,7 +180,7 @@ namespace Server.Custom.Skyfly.UODisc
 			return true;
 		}
 
-		public async Task<bool> ModifyMessageAsync(DiscordChannel channel, ulong msgId, string message = null, DiscordEmbed embed = null)
+		public static async Task<bool> ModifyMessageAsync(DiscordChannel channel, ulong msgId, string message = null, DiscordEmbed embed = null)
 		{
 			DiscordMessage msg = await GetMessageAsync(channel, msgId).ConfigureAwait(false);
 
@@ -133,7 +192,7 @@ namespace Server.Custom.Skyfly.UODisc
 			return true;
 		}
 
-		public async Task<bool> DeleteMessageAsync(ulong channelId, ulong msgId, string reason = null)
+		public static async Task<bool> DeleteMessageAsync(ulong channelId, ulong msgId, string reason = null)
 		{
 			DiscordMessage msg = await GetMessageAsync(channelId, msgId).ConfigureAwait(false);
 
@@ -144,7 +203,7 @@ namespace Server.Custom.Skyfly.UODisc
 			return true;
 		}
 
-		public async Task<bool> DeleteMessageAsync(DiscordChannel channel, ulong msgId, string reason = null)
+		public static async Task<bool> DeleteMessageAsync(DiscordChannel channel, ulong msgId, string reason = null)
 		{
 			DiscordMessage msg = await GetMessageAsync(channel, msgId).ConfigureAwait(false);
 
@@ -155,7 +214,7 @@ namespace Server.Custom.Skyfly.UODisc
 			return true;
 		}
 
-		public async Task<DiscordUser> GetUserAsync(ulong userId)
+		public static async Task<DiscordUser> GetUserAsync(ulong userId)
 		{
 			return await RunSafeAsync(async () => await _dclient.GetUserAsync(userId).ConfigureAwait(false)).ConfigureAwait(false);
 		}
@@ -164,7 +223,7 @@ namespace Server.Custom.Skyfly.UODisc
 		/// Gets a guild member
 		/// </summary>
 		/// <param name="userId">User needs to be in the same guild as <see cref="DClientSettings.GuildId"/></param>
-		public async Task<DiscordMember> GetMemberAsync(ulong userId)
+		public static async Task<DiscordMember> GetMemberAsync(ulong userId)
 		{
 			DiscordGuild guild = await GetGuildAsync().ConfigureAwait(false);
 
@@ -175,7 +234,7 @@ namespace Server.Custom.Skyfly.UODisc
 		/// Creates a direct message channel between the bot and the user
 		/// </summary>
 		/// <param name="userId">User needs to be in the same guild as <see cref="DClientSettings.GuildId"/></param>
-		public async Task<DiscordDmChannel> GetDmChanelAsync(ulong userId)
+		public static async Task<DiscordDmChannel> GetDmChanelAsync(ulong userId)
 		{
 			DiscordMember member = await GetMemberAsync(userId).ConfigureAwait(false);
 
@@ -185,7 +244,7 @@ namespace Server.Custom.Skyfly.UODisc
 			return await member.CreateDmChannelAsync().ConfigureAwait(false);
 		}
 
-		async Task<T> RunSafeAsync<T>(Func<Task<T>> f) where T : class
+		static async Task<T> RunSafeAsync<T>(Func<Task<T>> f) where T : class
 		{
 			try
 			{
@@ -201,7 +260,7 @@ namespace Server.Custom.Skyfly.UODisc
 			}
 		}
 
-		void Start()
+		static void Start()
 		{
 			if (IsReady)
 			{
@@ -258,7 +317,7 @@ namespace Server.Custom.Skyfly.UODisc
 			WriteLine("Client loaded");
 		}
 
-		void Load()
+		static void Load()
 		{
 			_cmdHandler.InitCommands();
 
@@ -273,7 +332,7 @@ namespace Server.Custom.Skyfly.UODisc
 			});
 		}
 
-		void Save()
+		static void Save()
 		{
 			Persistence.Serialize(_saveFile, w =>
 			{
@@ -283,17 +342,17 @@ namespace Server.Custom.Skyfly.UODisc
 			});
 		}
 
-		void Error(Exception ex)
+		static void Error(Exception ex)
 		{
 			WriteLine($"Error: {ex}", ConsoleColor.Red);
 		}
 
-		void Error(string name, string error = null, string info = null)
+		static void Error(string name, string error = null, string info = null)
 		{
 			WriteLine($"Error: {name}{(string.IsNullOrEmpty(error) ? "" : $": {error}")}{(string.IsNullOrEmpty(info) ? "" : $" ({info})")}", ConsoleColor.Red);
 		}
 
-		void WriteLine(object msg, ConsoleColor color = ConsoleColor.Cyan)
+		static void WriteLine(object msg, ConsoleColor color = ConsoleColor.Cyan)
 		{
 			Utility.PushColor(color);
 			Console.WriteLine($"Discord: {msg}");
@@ -301,7 +360,7 @@ namespace Server.Custom.Skyfly.UODisc
 		}
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-		void SubscribeEvents()
+		static void SubscribeEvents()
 		{
 			EventSink.WorldSave += _ => Save();
 
@@ -311,34 +370,28 @@ namespace Server.Custom.Skyfly.UODisc
 			_dclient.MessageCreated += async e => await ClientMessage(e).ConfigureAwait(false);
 		}
 
-		async Task ClientMessage(MessageCreateEventArgs e)
+		static async Task ClientMessage(MessageCreateEventArgs e)
 		{
 			if (e.Author.Id == _dclient.CurrentUser.Id ||
 				string.IsNullOrEmpty(e.Message.Content))
 				return;
 
-			//Disallow private chat and any other channels except #bot-test
-			if (e.Channel.Guild != null && e.Channel.Id != 830949825942913067)
-				return;
-			else if (e.Channel.Guild == null)
-				return;
-
 			_cmdHandler.Invoke(e);
 		}
 
-		async Task ClientReady(ReadyEventArgs e)
+		static async Task ClientReady(ReadyEventArgs e)
 		{
 			IsReady = true;
 			WriteLine("Client is ready");
 		}
 
-		async Task SocketError(SocketErrorEventArgs e)
+		static async Task SocketError(SocketErrorEventArgs e)
 		{
 			IsReady = false;
 			Error(e.Exception);
 		}
 
-		async Task ClientError(ClientErrorEventArgs e)
+		static async Task ClientError(ClientErrorEventArgs e)
 		{
 			IsReady = false;
 			Error(e.Exception);

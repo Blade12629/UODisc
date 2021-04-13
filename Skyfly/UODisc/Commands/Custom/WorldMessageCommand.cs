@@ -23,7 +23,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 
 		public int MinParameters => 3;
 
-		public void Invoke(DClient client, CommandHandler handler, CommandEventArgs args)
+		public void Invoke(CommandHandler handler, CommandEventArgs args)
 		{
 			if (!int.TryParse(args.Parameters[0], out int hue))
 			{
@@ -42,6 +42,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 				msg = $"{args.User.Username}: " + msg;
 
 			World.Broadcast(hue, false, msg);
+			args.Channel.SendMessageAsync("Sent message");
 		}
 	}
 }

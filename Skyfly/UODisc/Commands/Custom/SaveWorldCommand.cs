@@ -23,11 +23,13 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 
 		public int MinParameters => 0;
 
-		public void Invoke(DClient client, CommandHandler handler, CommandEventArgs args)
+		public void Invoke(CommandHandler handler, CommandEventArgs args)
 		{
 			Console.WriteLine($"{args.User.Username} started a world save!");
+
 			args.Channel.SendMessageAsync("Saving the world...").ConfigureAwait(false).GetAwaiter().GetResult();
 			World.Save();
+			args.Channel.SendMessageAsync("World was saved...").ConfigureAwait(false).GetAwaiter().GetResult();
 		}
 	}
 }

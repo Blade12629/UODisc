@@ -54,16 +54,10 @@ namespace Server.Custom.Skyfly.UODisc
 
 			if (r.ReadByte() != 0)
 			{
-				string accName = r.ReadString();
-				
-				foreach(Mobile m in World.Mobiles.Values)
-				{
-					if (!m.Player || m.Account == null || !m.Account.Username.Equals(accName))
-						continue;
+				IAccount acc = Accounts.GetAccount(r.ReadString());
 
-					Account = m.Account as Account;
-					break;
-				}
+				if (acc != null)
+					Account = (Account)acc;
 			}
 
 			DiscordUserId = r.ReadULong();
