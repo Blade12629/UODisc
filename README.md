@@ -18,4 +18,7 @@ Installation:
 
 5. In the base server folder run the following command: dotnet restore
 6. Recompile the server
+7. Start the server once so it generated the config
+8. Stop the server
+9. Go into Config/Discord.cfg and set your values
 7. Done
