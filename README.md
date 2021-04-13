@@ -7,7 +7,7 @@ Installation:
 
 1. Download this repository and put it into your custom server folder
 2. Open Server/Server.csproj
-3. Look for: <ItemGroup>
+3. Look for: ``<ItemGroup>``
 4. Below it insert:
 
 ```
