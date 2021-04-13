@@ -46,12 +46,15 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 				'u', 'U', 'v', 'V', 'w', 'W', 'x', 'X', 'y', 'Y',
 			};
 
+			_verificationCodes = new ConcurrentDictionary<string, ulong>();
+			_verificationUsers = new ConcurrentDictionary<ulong, string>();
+
 			CommandSystem.Register("linkaccount", AccessLevel.Player, new CommandEventHandler(LinkAccountIngame));
 		}
 
 		public void Invoke(CommandHandler handler, CommandEventArgs args)
 		{
-			if (DClient.UserManager[args.Member.Id] != null)
+			if (DClient.UserManager[args.User.Id] != null)
 			{
 				args.Channel.SendMessageAsync("You already linked your account!");
 				return;
@@ -77,12 +80,14 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 				return;
 			}
 
-			verCode = GenerateCode(Utility.Random(10));
+			verCode = GenerateCode(Utility.Random(6, 4));
 			_verificationCodes.TryAdd(verCode, args.User.Id);
 			_verificationUsers.TryAdd(args.User.Id, verCode);
 
 			dmChannel.SendMessageAsync($"Verification code created, login onto any of your characters (in UO) and type the following (Code is Case-Sensitive): [linkaccount {verCode}");
-			args.Message.DeleteAsync().ConfigureAwait(false);
+
+			if (args.Guild != null)
+				args.Message.DeleteAsync().ConfigureAwait(false);
 		}
 
 		void LinkAccountIngame(Server.Commands.CommandEventArgs e)

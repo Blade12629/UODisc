@@ -92,7 +92,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 				//Return when command channel is set, we are outside of it and have accesslevel vip or lower
 				//Return when we cannot find the command itself
 				//Return when the command is disabled
-				if ((access <= AccessLevel.VIP && DClient.Settings.CommandChannelId != 0 && DClient.Settings.CommandChannelId != e.Channel.Id) ||
+				if ((e.Guild != null && access <= AccessLevel.VIP && DClient.Settings.CommandChannelId != 0 && DClient.Settings.CommandChannelId != e.Channel.Id) ||
 					!_commands.TryGetValue(command.ToLower(), out ICommand cmd))
 					return;
 				else if (cmd.IsDisabled)
