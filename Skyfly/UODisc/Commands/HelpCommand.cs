@@ -32,9 +32,9 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 
 		}
 
-		public void Invoke(DClient client, CommandHandler handler, CommandEventArgs args)
+		public void Invoke(CommandHandler handler, CommandEventArgs args)
 		{
-			char prefix = client.Settings.CommandPrefix;
+			char prefix = DClient.Settings.CommandPrefix;
 
 			int page = 1;
 			if (args.Parameters.Count > 0)
@@ -113,7 +113,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 
 		public static void ShowHelp(DiscordChannel channel, ICommand command, string notice = null)
 		{
-			ShowHelp(channel, command, DClient.Instance.Settings.CommandPrefix, notice);
+			ShowHelp(channel, command, DClient.Settings.CommandPrefix, notice);
 		}
 
 		public static void ShowHelp(DiscordChannel channel, ICommand command, char prefix, string notice = null)
