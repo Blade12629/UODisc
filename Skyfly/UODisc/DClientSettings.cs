@@ -29,17 +29,31 @@ namespace Server.Custom.Skyfly.UODisc
 		public char CommandPrefix { get; set; }
 
 		/// <summary>
+		/// Forces the client to use a specific socket
+		/// <para>0 - Auto-Detect</para>
+		/// <para>1 - .Net</para>
+		/// <para>2 - Mono</para>
+		/// </summary>
+		public int ForceSocket { get; set; }
+
+		/// <summary>
 		/// Settings for <see cref="DClient"/>
 		/// </summary>
 		/// <param name="token">Discord Token</param>
 		/// <param name="guildId">Discord Guild Id</param>
 		/// <param name="commandPrefix">Discord Command Prefix</param>
-		public DClientSettings(string token, ulong guildId, ulong commandChannelId, char commandPrefix = '!') : this()
+		/// <param name="forceSocket">
+		/// Forces the client to use a specific socket
+		/// <para>0 - Auto-Detect</para>
+		/// <para>1 - .Net</para>
+		/// <para>2 - Mono</para></param>
+		public DClientSettings(string token, ulong guildId, ulong commandChannelId, char commandPrefix = '!', int forceSocket = 0) : this()
 		{
 			Token = token;
 			GuildId = guildId;
 			CommandChannelId = commandChannelId;
 			CommandPrefix = commandPrefix;
+			ForceSocket = forceSocket;
 		}
 	}
 }

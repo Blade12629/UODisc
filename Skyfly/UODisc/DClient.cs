@@ -8,6 +8,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using Server.Custom.Skyfly.UODisc.Commands;
+using Server.Custom.Skyfly.UODisc.Chats;
 
 namespace Server.Custom.Skyfly.UODisc
 {
@@ -26,6 +27,7 @@ namespace Server.Custom.Skyfly.UODisc
 		static DiscordClient _dclient;
 		static DiscordUserManager _userMgr;
 		static CommandHandler _cmdHandler;
+		static List<BaseChatSync> _chatSyncs;
 
 		public static void Initialize()
 		{
@@ -41,6 +43,7 @@ namespace Server.Custom.Skyfly.UODisc
 				Config.Set("Discord.GuildId", 0ul);
 				Config.Set("Discord.CommandPrefix", "!");
 				Config.Set("Discord.CommandChannelId", 0ul);
+				Config.Set("Discord.ForceSocket", 0);
 
 				Config.Save();
 
@@ -100,7 +103,9 @@ namespace Server.Custom.Skyfly.UODisc
 				return;
 			}
 
-			Settings = new DClientSettings(token, guildId, commandChannelId, cmdPrefix);
+			int forceSocket = Config.Get("Discord.ForceSocket", 0);
+
+			Settings = new DClientSettings(token, guildId, commandChannelId, cmdPrefix, forceSocket);
 			_userMgr = new DiscordUserManager();
 			_cmdHandler = new CommandHandler(cmdPrefix);
 
@@ -128,6 +133,8 @@ namespace Server.Custom.Skyfly.UODisc
 			//I don't know any other way to load this after the accounts have been loaded
 			//so we will load this after the world has been loaded
 			Load();
+
+			_chatSyncs = ChatSyncs.GetDefaultChatSyncs();
 
 			_dclient.ConnectAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 		}
@@ -260,6 +267,23 @@ namespace Server.Custom.Skyfly.UODisc
 			}
 		}
 
+		public static void Error(Exception ex)
+		{
+			WriteLine($"Error: {ex}", ConsoleColor.Red);
+		}
+
+		public static void Error(string name, string error = null, string info = null)
+		{
+			WriteLine($"Error: {name}{(string.IsNullOrEmpty(error) ? "" : $": {error}")}{(string.IsNullOrEmpty(info) ? "" : $" ({info})")}", ConsoleColor.Red);
+		}
+
+		public static void WriteLine(object msg, ConsoleColor color = ConsoleColor.Cyan)
+		{
+			Utility.PushColor(color);
+			Console.WriteLine($"Discord: {msg}");
+			Utility.PopColor();
+		}
+
 		static void Start()
 		{
 			if (IsReady)
@@ -302,15 +326,24 @@ namespace Server.Custom.Skyfly.UODisc
 				Token = Settings.Token
 			});
 
-			if (Type.GetType("Mono.Runtime") != null)
+			switch(Settings.ForceSocket)
 			{
-				WriteLine("Using mono websocket client");
-				_dclient.SetWebSocketClient<DSharpPlus.Net.WebSocket.WebSocketSharpClient>();
-			}
-			else
-			{
-				WriteLine("Using .net websocket client");
-				_dclient.SetWebSocketClient<DSharpPlus.Net.WebSocket.WebSocket4NetClient>();
+				case 0:
+					if (Type.GetType("Mono.Runtime") != null)
+						goto case 2;
+					else
+						goto case 1;
+					break;
+
+				case 1:
+					WriteLine("Using .net websocket client");
+					_dclient.SetWebSocketClient<DSharpPlus.Net.WebSocket.WebSocket4NetClient>();
+					break;
+
+				case 2:
+					WriteLine("Using mono websocket client");
+					_dclient.SetWebSocketClient<DSharpPlus.Net.WebSocket.WebSocketSharpClient>();
+					break;
 			}
 
 			SubscribeEvents();
@@ -342,23 +375,6 @@ namespace Server.Custom.Skyfly.UODisc
 			});
 		}
 
-		static void Error(Exception ex)
-		{
-			WriteLine($"Error: {ex}", ConsoleColor.Red);
-		}
-
-		static void Error(string name, string error = null, string info = null)
-		{
-			WriteLine($"Error: {name}{(string.IsNullOrEmpty(error) ? "" : $": {error}")}{(string.IsNullOrEmpty(info) ? "" : $" ({info})")}", ConsoleColor.Red);
-		}
-
-		static void WriteLine(object msg, ConsoleColor color = ConsoleColor.Cyan)
-		{
-			Utility.PushColor(color);
-			Console.WriteLine($"Discord: {msg}");
-			Utility.PopColor();
-		}
-
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 		static void SubscribeEvents()
 		{
@@ -381,6 +397,18 @@ namespace Server.Custom.Skyfly.UODisc
 
 		static async Task ClientReady(ReadyEventArgs e)
 		{
+			int total = 0;
+			for (int i = 0; i < _chatSyncs.Count; i++)
+			{
+				_chatSyncs[i].Start();
+
+				if (_chatSyncs[i].IsRunning)
+					total++;
+			}
+
+			if (_chatSyncs.Count > 0)
+				WriteLine($"Started a total of {total} chat sync handlers");
+
 			IsReady = true;
 			WriteLine("Client is ready");
 		}

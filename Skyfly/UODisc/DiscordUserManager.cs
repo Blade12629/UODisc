@@ -121,7 +121,11 @@ namespace Server.Custom.Skyfly.UODisc
 		{
 			w.Write(0);
 
-			DiscordUserLink[] links = _accLinks.Values.ToArray();
+			DiscordUserLink[] links;
+
+			//lock this just incase to be safe since this could be modified from discord while we are saving it
+			lock (_syncRoot)
+				links = _accLinks.Values.ToArray();
 
 			w.Write(links.Length);
 			for (int i = 0; i < links.Length; i++)

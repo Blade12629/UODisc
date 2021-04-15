@@ -32,8 +32,6 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 		ConcurrentDictionary<string, ulong> _verificationCodes;
 		ConcurrentDictionary<ulong, string> _verificationUsers;
 
-		readonly string _saveFile = System.IO.Path.Combine(DClient.SaveFolder, "Ver.bin");
-
 		public LinkAccountCommand()
 		{
 			_possibleCodeChars = new char[]

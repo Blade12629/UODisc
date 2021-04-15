@@ -127,7 +127,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 					Text = "< > = required\n" +
 							"[ ] = optional\n" +
 							"/ = choose between\n" +
-							"!! !! = atleast one marked parameter required"
+							"Text with spaces needs to be inside: \"\""
 				}
 			};
 

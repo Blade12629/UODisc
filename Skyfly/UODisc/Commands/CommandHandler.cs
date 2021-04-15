@@ -22,6 +22,13 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 
 		public CommandHandler(char commandPrefix)
 		{
+#if DEBUG
+			Debug = true;
+#endif
+
+			if (!Debug && Core.Debug)
+				Debug = true;
+
 			_commands = new Dictionary<string, ICommand>();
 			CommandPrefix = commandPrefix;
 		}
@@ -54,8 +61,9 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 				{
 					cmd = Activator.CreateInstance(types[i]) as ICommand;
 				}
-				catch (Exception)
+				catch (Exception ex)
 				{
+					DClient.Error("Command Initialization", ex.ToString());
 					continue;
 				}
 
@@ -64,6 +72,8 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 
 				RegisterCommand(cmd);
 			}
+
+			DClient.WriteLine($"Registered a total of {_commands.Count} commands");
 		}
 
 		public void Invoke(MessageCreateEventArgs e)
@@ -74,7 +84,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 					!e.Message.Content[0].Equals(CommandPrefix))
 					return;
 
-				List<string> parameters = e.Message.Content.Split(' ').Skip(0).ToList();
+				List<string> parameters = Split(e.Message.Content);
 
 				if (parameters == null)
 					parameters = new List<string>();
@@ -169,13 +179,11 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 					{
 						cmd.Invoke(this, arg);
 					}
-#pragma warning disable CA1031 // Do not catch general exception types
 					catch (Exception ex)
-#pragma warning restore CA1031 // Do not catch general exception types
 					{
 						if (ex is UnauthorizedException)
 						{
-							e.Channel.SendMessageAsync("Internal Error: Unauthorized");
+							e.Channel.SendMessageAsync("Internal Error: Unauthorized (This error can happen when the bot tries to send a message to someone via DM but the user has disabled DMs from non friends)");
 							return;
 						}
 
@@ -187,19 +195,81 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 				}));
 
 			}
-#pragma warning disable CA1031 // Do not catch general exception types
 			catch (Exception ex)
-#pragma warning restore CA1031 // Do not catch general exception types
 			{
-				Utility.PushColor(ConsoleColor.Red);
-				Console.WriteLine(ex);
-				Utility.PopColor();
+				DClient.Error(ex);
 			}
 
 			string GetDebugExceptionMessage(Exception ex)
 			{
-				return $"Something went wrong executing this command (L: {GetLineNumber(ex)} At: {ex.TargetSite.DeclaringType}.{ex.TargetSite.Name}: {ex.Message})";
+				return $"Something went wrong executing this command (L: {GetLineNumber(ex)} At: {(ex.TargetSite.DeclaringType?.FullName ?? "unkown")}.{ex.TargetSite.Name}: {ex.Message})";
 			}
+		}
+
+		List<string> Split(string content)
+		{
+			List<string> result = new List<string>();
+
+			if (string.IsNullOrWhiteSpace(content))
+				return result;
+
+			StringBuilder sb = new StringBuilder(content);
+
+			//remove command prefix
+			if (sb.Length > 0)
+				sb.Remove(0, 1);
+
+			//Todo make converting parameters to their respective type easier
+			//Todo create chat listener to allow synchronizing game and discord chat
+			StringBuilder rb = new StringBuilder(content.Length);
+
+			bool isString = false;
+			bool lastWasEscapeChar = false;
+			while (sb.Length > 0)
+			{
+				char c = sb[0];
+				sb.Remove(0, 1);
+
+				switch (c)
+				{
+					case '"':
+						if (lastWasEscapeChar)
+						{
+							lastWasEscapeChar = false;
+							break;
+						}
+
+						if (!isString)
+						{
+							isString = true;
+							continue;
+						}
+						else
+						{
+							isString = false;
+							result.Add(rb.ToString());
+							rb.Clear();
+							continue;
+						}
+
+					case ' ':
+						lastWasEscapeChar = false;
+						result.Add(rb.ToString());
+						rb.Clear();
+						continue;
+
+					case '/':
+						lastWasEscapeChar = true;
+						break;
+				}
+
+				rb.Append(c);
+			}
+
+			if (rb.Length > 0)
+				result.Add(rb.ToString());
+
+			return result;
 		}
 
 		void RegisterCommand(ICommand cmd)
@@ -208,9 +278,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 
 			if (_commands.ContainsKey(cmdName))
 			{
-				Utility.PushColor(ConsoleColor.Cyan);
-				Console.WriteLine($"Discord: Command {cmdName} already exists, skipping...");
-				Utility.PopColor();
+				DClient.WriteLine($"Discord: Command {cmdName} already exists, skipping...");
 				return;
 			}
 
@@ -218,27 +286,18 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 			{
 				if (cmdName[i] == ' ')
 				{
-					Utility.PushColor(ConsoleColor.Cyan);
-					Console.WriteLine($"Discord: Command {cmdName} contains illegal character \" \", skipping...");
-					Utility.PopColor();
-
+					DClient.WriteLine($"Discord: Command {cmdName} contains illegal character \" \", skipping...");
 					return;
 				}
 				else if (!char.IsLetterOrDigit(cmdName[i]))
 				{
-					Utility.PushColor(ConsoleColor.Cyan);
-					Console.WriteLine($"Discord: Command {cmdName} contains illegal character \"{cmdName[i]}\", skipping...");
-					Utility.PopColor();
-
+					DClient.WriteLine($"Discord: Command {cmdName} contains illegal character \"{cmdName[i]}\", skipping...");
 					return;
 				}
 			}
 
 			_commands.Add(cmdName, cmd);
-
-			Utility.PushColor(ConsoleColor.Cyan);
-			Console.WriteLine($"Discord: Registered command {cmdName}");
-			Utility.PopColor();
+			DClient.WriteLine($"Discord: Registered command {cmdName}");
 		}
 
 		static int GetLineNumber(Exception ex)

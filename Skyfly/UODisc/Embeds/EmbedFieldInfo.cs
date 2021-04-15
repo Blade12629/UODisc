@@ -98,12 +98,17 @@ namespace Server.Custom.Skyfly.UODisc.Embeds
 		{
 			lock (SyncRoot)
 			{
-				if (start < 0 || start >= _lines.Count)
+				if (start < 0)
 					throw new ArgumentOutOfRangeException(nameof(start));
 				else if (count <= 0)
 					throw new ArgumentOutOfRangeException(nameof(count));
 
-				if (start + count >= _lines.Count)
+				if (start >= _lines.Count)
+				{
+					start = _lines.Count - 1;
+					count = 1;
+				}
+				else if (start + count >= _lines.Count)
 					count = _lines.Count - start;
 
 				return _lines.GetRange(start, count);
