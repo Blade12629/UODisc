@@ -73,12 +73,12 @@ namespace Server.Custom.Skyfly.UODisc.Chats
 				_syncTask.Wait();
 		}
 
-		public void Clear()
+		public virtual void Clear()
 		{
 			while (_syncQueue.TryDequeue(out string _)) ;
 		}
 
-		public void ReceiveMessage(string msg)
+		public virtual void ReceiveMessage(string msg)
 		{
 			if (!IsRunning)
 				return;

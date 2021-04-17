@@ -14,6 +14,8 @@ namespace Server.Custom.Skyfly.UODisc
 {
 	public static class DClient
 	{
+		public static event Action<MessageCreateEventArgs> OnMessageRecieved;
+
 		public static string SaveFolder => System.IO.Path.Combine(Environment.CurrentDirectory, "Saves", "Discord");
 
 		public static DClientSettings Settings { get; private set; }
@@ -393,6 +395,7 @@ namespace Server.Custom.Skyfly.UODisc
 				return;
 
 			_cmdHandler.Invoke(e);
+			OnMessageRecieved?.Invoke(e);
 		}
 
 		static async Task ClientReady(ReadyEventArgs e)

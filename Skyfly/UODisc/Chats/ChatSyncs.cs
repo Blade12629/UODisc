@@ -13,7 +13,8 @@ namespace Server.Custom.Skyfly.UODisc.Chats
 		{
 			return new List<BaseChatSync>()
 			{
-				//new GlobalChatSync(0),
+				//new GlobalDiscordChatSync(0),
+				//new GlobalGameChatSync(0),
 			};
 		}
 	}

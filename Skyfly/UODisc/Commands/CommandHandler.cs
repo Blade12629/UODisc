@@ -219,8 +219,6 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 			if (sb.Length > 0)
 				sb.Remove(0, 1);
 
-			//Todo make converting parameters to their respective type easier
-			//Todo create chat listener to allow synchronizing game and discord chat
 			StringBuilder rb = new StringBuilder(content.Length);
 
 			bool isString = false;

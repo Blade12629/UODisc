@@ -12,6 +12,7 @@ namespace Server.Custom.Skyfly.UODisc
 	{
 		public Account Account { get; set; }
 		public ulong DiscordUserId { get; set; }
+		public Mobile SelectedCharacter { get; set; }
 
 		public DiscordUserLink()
 		{
@@ -35,8 +36,18 @@ namespace Server.Custom.Skyfly.UODisc
 
 		public void Serialize(GenericWriter w)
 		{
-			w.Write(0);
+			w.Write(1);
 
+			//1
+			if (SelectedCharacter == null)
+				w.Write((byte)0);
+			else
+			{
+				w.Write((byte)1);
+				w.Write(SelectedCharacter);
+			}
+
+			//0
 			if (Account == null)
 				w.Write((byte)0);
 			else
@@ -52,15 +63,27 @@ namespace Server.Custom.Skyfly.UODisc
 		{
 			int ver = r.ReadInt();
 
-			if (r.ReadByte() != 0)
+			switch (ver)
 			{
-				IAccount acc = Accounts.GetAccount(r.ReadString());
+				case 1:
+					if (r.ReadByte() != 0)
+					{
+						SelectedCharacter = r.ReadMobile();
+					}
+					goto case 0;
 
-				if (acc != null)
-					Account = (Account)acc;
+				case 0:
+					if (r.ReadByte() != 0)
+					{
+						IAccount acc = Accounts.GetAccount(r.ReadString());
+
+						if (acc != null)
+							Account = (Account)acc;
+					}
+
+					DiscordUserId = r.ReadULong();
+					break;
 			}
-
-			DiscordUserId = r.ReadULong();
 		}
 
 		public override bool Equals(object obj)
