@@ -11,6 +11,8 @@ namespace Server.Custom.Skyfly.UODisc
 {
 	public sealed class DiscordUserManager
 	{
+		public int AccountsPerIp { get; private set; }
+
 		Dictionary<Account, DiscordUserLink> _accLinks;
 		Dictionary<ulong, DiscordUserLink> _discUserLinks;
 
@@ -18,6 +20,8 @@ namespace Server.Custom.Skyfly.UODisc
 
 		public DiscordUserManager()
 		{
+			AccountsPerIp = Config.Get("Accounts.AccountsPerIp", 1);
+
 			_syncRoot = new object();
 
 			_accLinks = new Dictionary<Account, DiscordUserLink>();
@@ -72,10 +76,16 @@ namespace Server.Custom.Skyfly.UODisc
 		{
 			DiscordUserLink link = this[discordUserId];
 
-			if (link == null || link.Account == null)
+			if (link == null || link.Accounts == null)
 				return AccessLevel.Player;
 
-			return GetAccessLevel(link.Account);
+			AccessLevel access = AccessLevel.Player;
+
+			for (int i = 0; i < link.Accounts.Length; i++)
+				if (link.Accounts[i].AccessLevel > access)
+					access = link.Accounts[i].AccessLevel;
+
+			return access;
 		}
 
 		public AccessLevel GetAccessLevel(Account acc)
@@ -87,20 +97,23 @@ namespace Server.Custom.Skyfly.UODisc
 		{
 			lock(_syncRoot)
 			{
-				if (dul.Account != null)
-				{
-					if (!_accLinks.ContainsKey(dul.Account))
-						_accLinks.Add(dul.Account, dul);
-					else
-						_accLinks[dul.Account] = dul;
-				}
-
 				if (dul.DiscordUserId > 0)
 				{
 					if (!_discUserLinks.ContainsKey(dul.DiscordUserId))
 						_discUserLinks.Add(dul.DiscordUserId, dul);
 					else
 						_discUserLinks[dul.DiscordUserId] = dul;
+				}
+
+				if (dul.Accounts != null)
+				{
+					for (int i = 0; i < dul.Accounts.Length; i++)
+					{
+						if (!_accLinks.ContainsKey(dul.Accounts[i]))
+							_accLinks.Add(dul.Accounts[i], dul);
+						else
+							_accLinks[dul.Accounts[i]] = dul;
+					}
 				}
 			}
 		}
@@ -109,8 +122,9 @@ namespace Server.Custom.Skyfly.UODisc
 		{
 			lock(_syncRoot)
 			{
-				if (dul.Account != null)
-					_accLinks.Remove(dul.Account);
+				if (dul.Accounts != null)
+					for (int i = 0; i < dul.Accounts.Length; i++)
+						_accLinks.Remove(dul.Accounts[i]);
 
 				if (dul.DiscordUserId > 0)
 					_discUserLinks.Remove(dul.DiscordUserId);
@@ -142,7 +156,7 @@ namespace Server.Custom.Skyfly.UODisc
 				DiscordUserLink dul = new DiscordUserLink();
 				dul.Deserialize(r);
 
-				if (dul.Account == null && dul.DiscordUserId == 0)
+				if (dul.Accounts == null && dul.DiscordUserId == 0)
 					continue;
 
 				AddOrUpdate(dul);

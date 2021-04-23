@@ -27,7 +27,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 		{
 			DiscordUserLink dul = DClient.UserManager[args.User.Id];
 
-			if (dul == null || dul.Account == null)
+			if (dul == null || dul.Accounts == null || dul.Accounts.Length == 0)
 			{
 				args.Channel.SendMessageAsync("You need to link your account first");
 				return;
@@ -37,7 +37,20 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 			{
 				Mobile m = World.Mobiles.ElementAt(i).Value;
 
-				if (!m.Player || !m.Name.Equals(args.Parameters[0]) || !m.Account.Username.Equals(dul.Account.Username))
+				if (!m.Player || !m.Name.Equals(args.Parameters[0]))
+					continue;
+
+				bool endAndContinue = false;
+				for (int x = 0; x < dul.Accounts.Length; x++)
+				{
+					if (m.Account.Username.Equals(dul.Accounts[x].Username))
+					{
+						endAndContinue = true;
+						break;
+					}
+				}
+
+				if (endAndContinue)
 					continue;
 
 				dul.SelectedCharacter = m;

@@ -10,7 +10,7 @@ namespace Server.Custom.Skyfly.UODisc
 {
 	public sealed class DiscordUserLink : IEquatable<DiscordUserLink>
 	{
-		public Account Account { get; set; }
+		public Account[] Accounts { get; set; }
 		public ulong DiscordUserId { get; set; }
 		public Mobile SelectedCharacter { get; set; }
 
@@ -19,9 +19,13 @@ namespace Server.Custom.Skyfly.UODisc
 
 		}
 
-		public DiscordUserLink(Account acc)
+		public DiscordUserLink(params Account[] accs)
 		{
-			Account = acc;
+			Accounts = accs;
+		}
+
+		public DiscordUserLink(Account acc) : this(new Account[] { acc })
+		{
 		}
 
 		public DiscordUserLink(ulong discordUserId)
@@ -34,9 +38,57 @@ namespace Server.Custom.Skyfly.UODisc
 			DiscordUserId = discordUserId;
 		}
 
+		public void AddAccount(Account acc)
+		{
+			if (acc == null)
+				return;
+
+			Account[] accs = new Account[Accounts.Length + 1];
+			
+			for (int i = 0; i < Accounts.Length; i++)
+			{
+				if (Accounts[i].Username.Equals(acc.Username))
+					return;
+
+				accs[i] = Accounts[i];
+			}
+
+			accs[Accounts.Length] = acc;
+			Accounts = accs;
+		}
+
+		public void RemoveAccount(Account acc)
+		{
+			if (acc == null)
+				return;
+
+			List<Account> accs = new List<Account>(Accounts);
+
+			for (int i = 0; i < accs.Count; i++)
+			{
+				if (accs[i].Username.Equals(acc.Username))
+				{
+					accs.RemoveAt(i);
+					Accounts = accs.ToArray();
+					return;
+				}
+			}
+		}
+
 		public void Serialize(GenericWriter w)
 		{
 			w.Write(1);
+
+			//2
+			if (Accounts == null || Accounts.Length == 0)
+				w.Write(0);
+			else
+			{
+				w.Write(Accounts.Length);
+
+				for (int i = 0; i < Accounts.Length; i++)
+					w.Write(Accounts[i].Username);
+			}
 
 			//1
 			if (SelectedCharacter == null)
@@ -48,13 +100,13 @@ namespace Server.Custom.Skyfly.UODisc
 			}
 
 			//0
-			if (Account == null)
-				w.Write((byte)0);
-			else
-			{
-				w.Write((byte)1);
-				w.Write(Account.Username);
-			}
+			//if (Account == null)
+			//	w.Write((byte)0);
+			//else
+			//{
+			//	w.Write((byte)1);
+			//	w.Write(Account.Username);
+			//}
 
 			w.Write(DiscordUserId);
 		}
@@ -65,6 +117,29 @@ namespace Server.Custom.Skyfly.UODisc
 
 			switch (ver)
 			{
+				case 2:
+					{
+						int length = r.ReadInt();
+
+						if (length > 0)
+						{
+							List<Account> accs = new List<Account>(length);
+
+							for (int i = 0; i < accs.Count; i++)
+							{
+								string accName = r.ReadString();
+								Account acc = Accounting.Accounts.GetAccount(accName) as Account;
+
+								if (acc != null)
+									accs.Add(acc);
+							}
+
+							if (accs.Count > 0)
+								Accounts = accs.ToArray();
+						}
+					}
+					goto case 1;
+
 				case 1:
 					if (r.ReadByte() != 0)
 					{
@@ -73,12 +148,15 @@ namespace Server.Custom.Skyfly.UODisc
 					goto case 0;
 
 				case 0:
+					if (ver >= 2)
+						break;
+
 					if (r.ReadByte() != 0)
 					{
-						IAccount acc = Accounts.GetAccount(r.ReadString());
+						IAccount acc = Accounting.Accounts.GetAccount(r.ReadString());
 
 						if (acc != null)
-							Account = (Account)acc;
+							AddAccount((Account)acc);
 					}
 
 					DiscordUserId = r.ReadULong();
@@ -94,7 +172,7 @@ namespace Server.Custom.Skyfly.UODisc
 		public bool Equals(DiscordUserLink other)
 		{
 			return other != null &&
-				   EqualityComparer<Account>.Default.Equals(Account, other.Account) &&
+				   EqualityComparer<Account[]>.Default.Equals(Accounts, other.Accounts) &&
 				   DiscordUserId == other.DiscordUserId;
 		}
 
@@ -118,19 +196,26 @@ namespace Server.Custom.Skyfly.UODisc
 
 		public bool Equals(Mobiles.PlayerMobile pm)
 		{
-			return pm != null && pm.Account != null && Account != null && 
+			return pm != null && pm.Account != null && Accounts != null && 
 				   Equals(pm.Account);
 		}
 
 		public bool Equals(IAccount acc)
 		{
-			return acc != null && Account != null && acc.Username.Equals(Account.Username, StringComparison.CurrentCulture);
+			if (Accounts == null)
+				return false;
+
+			for (int i = 0; i < Accounts.Length; i++)
+				if (Accounts[i].Username.Equals(acc.Username, StringComparison.CurrentCultureIgnoreCase))
+					return true;
+
+			return false;
 		}
 
 		public override int GetHashCode()
 		{
 			var hashCode = -584914611;
-			hashCode = hashCode * -1521134295 + EqualityComparer<Account>.Default.GetHashCode(Account);
+			hashCode = hashCode * -1521134295 + EqualityComparer<Account[]>.Default.GetHashCode(Accounts);
 			hashCode = hashCode * -1521134295 + DiscordUserId.GetHashCode();
 			return hashCode;
 		}
