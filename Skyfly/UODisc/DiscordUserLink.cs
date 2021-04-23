@@ -149,7 +149,10 @@ namespace Server.Custom.Skyfly.UODisc
 
 				case 0:
 					if (ver >= 2)
+					{
+						DiscordUserId = r.ReadULong();
 						break;
+					}
 
 					if (r.ReadByte() != 0)
 					{
