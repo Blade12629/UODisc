@@ -77,7 +77,7 @@ namespace Server.Custom.Skyfly.UODisc
 
 		public void Serialize(GenericWriter w)
 		{
-			w.Write(1);
+			w.Write(2);
 
 			//2
 			if (Accounts == null || Accounts.Length == 0)
