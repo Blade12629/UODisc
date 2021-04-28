@@ -1,4 +1,7 @@
 # UODisc
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a58949893f9342669c842a39c89535ad)](https://app.codacy.com/gh/Blade12629/UODisc?utm_source=github.com&utm_medium=referral&utm_content=Blade12629/UODisc&utm_campaign=Badge_Grade_Settings)
+
 A discord client based on [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) for [ServUO](https://github.com/ServUO/ServUO)
 ---
 
