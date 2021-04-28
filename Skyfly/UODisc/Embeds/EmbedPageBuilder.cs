@@ -194,7 +194,7 @@ namespace Server.Custom.Skyfly.UODisc.Embeds
 
 				if (builder.Footer == null)
 				{
-					builder.Footer = new DiscordEmbedBuilder.EmbedFooter()
+					builder.Footer = new DiscordEmbedBuilder.EmbedFooter
 					{
 						Text = ""
 					};

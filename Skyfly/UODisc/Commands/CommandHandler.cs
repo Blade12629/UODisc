@@ -18,7 +18,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 		public bool Debug { get; set; }
 		public IReadOnlyDictionary<string, ICommand> Commands => _commands;
 
-		Dictionary<string, ICommand> _commands;
+		readonly Dictionary<string, ICommand> _commands;
 
 		public CommandHandler(char commandPrefix)
 		{
@@ -113,7 +113,6 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 
 				switch (cmd.CommandType)
 				{
-					default:
 					case CommandType.None:
 						break;
 
@@ -230,6 +229,9 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 
 				switch (c)
 				{
+					default:
+						break;
+
 					case '"':
 						if (lastWasEscapeChar)
 						{

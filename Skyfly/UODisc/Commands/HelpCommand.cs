@@ -26,12 +26,6 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 		public int MinParameters => 0;
 		public bool AllowOverwritingAccessLevel => false;
 
-
-		public HelpCommand()
-		{
-
-		}
-
 		public void Invoke(CommandHandler handler, CommandEventArgs args)
 		{
 			char prefix = DClient.Settings.CommandPrefix;
@@ -118,11 +112,11 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 
 		public static void ShowHelp(DiscordChannel channel, ICommand command, char prefix, string notice = null)
 		{
-			DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+			DiscordEmbedBuilder builder = new DiscordEmbedBuilder
 			{
 				Title = $"Command Info: {command.Command}",
 				Timestamp = DateTime.UtcNow,
-				Footer = new DiscordEmbedBuilder.EmbedFooter()
+				Footer = new DiscordEmbedBuilder.EmbedFooter
 				{
 					Text = "< > = required\n" +
 							"[ ] = optional\n" +

@@ -15,9 +15,12 @@ namespace Server.Custom.Skyfly.UODisc
 		public TimeSpan CacheSendDelay { get; }
 		public DiscordChannel Channel { get; }
 
-		Task _task;
+		readonly Task _task;
+		readonly ConcurrentQueue<string> _queue;
 		CancellationTokenSource _token;
-		ConcurrentQueue<string> _queue;
+
+
+		static readonly int _maxMessageLength = 2400;
 
 		public DiscLogger(ulong discordChannelId, TimeSpan cacheSendDelay)
 		{
@@ -46,6 +49,9 @@ namespace Server.Custom.Skyfly.UODisc
 		{
 			switch(level)
 			{
+				default:
+					break;
+
 				case LogLevel.Debug:
 #if RELEASE
 					return;
@@ -92,8 +98,6 @@ namespace Server.Custom.Skyfly.UODisc
 			}
 		}
 
-		static readonly int _maxMessageLength = 2400;
-
 		IEnumerable<string> GatherMessages()
 		{
 			StringBuilder sb = new StringBuilder();
@@ -120,8 +124,6 @@ namespace Server.Custom.Skyfly.UODisc
 
 			if (sb.Length > 0)
 				yield return sb.ToString();
-
-			yield break;
 		}
 
 		void SendMessage(string msg)

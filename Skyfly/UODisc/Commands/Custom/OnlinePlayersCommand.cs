@@ -54,7 +54,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 				epb.Add("Connected Since", states[i].ConnectedFor.ToString());
 			}
 
-			DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+			DiscordEmbedBuilder builder = new DiscordEmbedBuilder
 			{
 				Title = "Online Players",
 				Timestamp = DateTime.UtcNow

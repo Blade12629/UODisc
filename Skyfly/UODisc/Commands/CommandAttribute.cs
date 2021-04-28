@@ -9,9 +9,5 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 	[AttributeUsage(AttributeTargets.Class)]
 	public sealed class CommandAttribute : Attribute
 	{
-		public CommandAttribute() : base()
-		{
-
-		}
 	}
 }

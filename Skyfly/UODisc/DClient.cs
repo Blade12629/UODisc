@@ -206,7 +206,7 @@ namespace Server.Custom.Skyfly.UODisc
 			if (string.IsNullOrEmpty(title))
 				title = InvisibleCharStr;
 
-			DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+			DiscordEmbedBuilder builder = new DiscordEmbedBuilder
 			{
 				Title = title,
 				Description = message,
@@ -349,6 +349,9 @@ namespace Server.Custom.Skyfly.UODisc
 
 			switch (Settings.CommandPrefix)
 			{
+				default:
+					break;
+
 				case char.MinValue:
 				case char.MaxValue:
 				case ' ':
@@ -362,7 +365,7 @@ namespace Server.Custom.Skyfly.UODisc
 				return;
 			}
 
-			_dclient = new DiscordClient(new DiscordConfiguration()
+			_dclient = new DiscordClient(new DiscordConfiguration
 			{
 				TokenType = TokenType.Bot,
 				Token = Settings.Token
@@ -370,12 +373,12 @@ namespace Server.Custom.Skyfly.UODisc
 
 			switch(Settings.ForceSocket)
 			{
+				default:
 				case 0:
 					if (Type.GetType("Mono.Runtime") != null)
 						goto case 2;
 					else
 						goto case 1;
-					break;
 
 				case 1:
 					WriteLine("Using .net websocket client");
