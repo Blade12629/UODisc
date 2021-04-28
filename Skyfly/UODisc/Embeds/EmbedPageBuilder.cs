@@ -17,8 +17,8 @@ namespace Server.Custom.Skyfly.UODisc.Embeds
 
 		public object SyncRoot { get; }
 
-		private Dictionary<string, EmbedFieldInfo> _fields;
-		private int _maxRows;
+		readonly Dictionary<string, EmbedFieldInfo> _fields;
+		readonly int _maxRows;
 
 		/// <summary>
 		/// Threadsafe Embed Page Builder

@@ -67,7 +67,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands
 				commands[i] = (commands[i].Item1, newAccess);
 			}
 
-			DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+			DiscordEmbedBuilder builder = new DiscordEmbedBuilder
 			{
 				Title = "Command List",
 				Description = "Prefix: " + prefix,

@@ -13,8 +13,8 @@ namespace Server.Custom.Skyfly.UODisc
 	{
 		public int AccountsPerIp { get; private set; }
 
-		Dictionary<Account, DiscordUserLink> _accLinks;
-		Dictionary<ulong, DiscordUserLink> _discUserLinks;
+		readonly Dictionary<Account, DiscordUserLink> _accLinks;
+		readonly Dictionary<ulong, DiscordUserLink> _discUserLinks;
 
 		readonly object _syncRoot;
 

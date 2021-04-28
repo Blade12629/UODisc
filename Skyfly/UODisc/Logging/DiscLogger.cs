@@ -17,7 +17,7 @@ namespace Server.Custom.Skyfly.UODisc
 
 		readonly Task _task;
 		readonly ConcurrentQueue<string> _queue;
-		CancellationTokenSource _token;
+		readonly CancellationTokenSource _token;
 
 
 		static readonly int _maxMessageLength = 2400;

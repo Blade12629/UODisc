@@ -29,8 +29,8 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 
 		//Verification codes are cleared everytime the server restarts
 		//this is on purpose so we don't store codes for too long
-		ConcurrentDictionary<string, ulong> _verificationCodes;
-		ConcurrentDictionary<ulong, string> _verificationUsers;
+		readonly ConcurrentDictionary<string, ulong> _verificationCodes;
+		readonly ConcurrentDictionary<ulong, string> _verificationUsers;
 
 		public LinkAccountCommand()
 		{
