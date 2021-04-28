@@ -8,6 +8,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using Server.Custom.Skyfly.UODisc.Commands;
+using Server.Custom.Skyfly.UODisc.Embeds;
 
 namespace Server.Custom.Skyfly.UODisc
 {
@@ -16,6 +17,8 @@ namespace Server.Custom.Skyfly.UODisc
 		public static event Action<MessageCreateEventArgs> OnMessageRecieved;
 
 		public static string SaveFolder => System.IO.Path.Combine(Environment.CurrentDirectory, "Saves", "Discord");
+		public static char InvisibleChar => '‎';
+		public static string InvisibleCharStr => "‎";
 
 		public static DClientSettings Settings { get; private set; }
 		public static bool IsReady { get; private set; }
@@ -28,6 +31,7 @@ namespace Server.Custom.Skyfly.UODisc
 		static DiscordClient _dclient;
 		static DiscordUserManager _userMgr;
 		static CommandHandler _cmdHandler;
+		static ILogger _discordLogger;
 
 		public static void Initialize()
 		{
@@ -146,6 +150,11 @@ namespace Server.Custom.Skyfly.UODisc
 			_dclient.ConnectAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 		}
 
+		public static void DiscordLog(string message, LogLevel level = LogLevel.Trace, bool usePrefix = true)
+		{
+			_discordLogger?.Log(message, level, usePrefix);
+		}
+
 		public static async Task<DiscordChannel> GetChannelAsync(ulong id)
 		{
 			return await RunSafeAsync(async () => await _dclient.GetChannelAsync(id).ConfigureAwait(false)).ConfigureAwait(false);
@@ -179,6 +188,32 @@ namespace Server.Custom.Skyfly.UODisc
 				return false;
 
 			await channel.SendMessageAsync(content: message, embed: embed).ConfigureAwait(false);
+			return true;
+		}
+
+		public static async Task<bool> SendEmbedMessageAsync(ulong channelId, string message, string title = null)
+		{
+			DiscordChannel channel = await GetChannelAsync(channelId).ConfigureAwait(false);
+
+			if (channel == null)
+				return false;
+
+			return await SendEmbedMessageAsync(channel, message, title);
+		}
+
+		public static async Task<bool> SendEmbedMessageAsync(DiscordChannel channel, string message, string title = null)
+		{
+			if (string.IsNullOrEmpty(title))
+				title = InvisibleCharStr;
+
+			DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+			{
+				Title = title,
+				Description = message,
+				Timestamp = DateTime.UtcNow
+			};
+
+			await channel.SendMessageAsync(embed: builder.Build()).ConfigureAwait(false);
 			return true;
 		}
 
@@ -354,6 +389,13 @@ namespace Server.Custom.Skyfly.UODisc
 			}
 
 			SubscribeEvents();
+
+			if (Settings.LogChannelId > 0)
+			{
+				_discordLogger = LoggerFactory.GetLogger(Settings.LogChannelId);
+				DiscordLog("Discord client loaded");
+			}
+
 			WriteLine("Client loaded");
 		}
 

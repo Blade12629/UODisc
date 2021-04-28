@@ -40,13 +40,12 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 				states[i].Mobile.Account.Banned = true;
 				states[i].Dispose();
 
-				LoggerFactory.GetLogger(DClient.Settings.LogChannelId).Log($"{args.User.Username} banned player {args.Parameters[0]} for reason: {reason}");
-				DClient.WriteLine($"{args.User.Username} banned player {args.Parameters[0]} for reason: {reason}");
-				args.Channel.SendMessageAsync($"Banned player {args.Parameters[0]} for reason: {reason}");
+				DClient.DiscordLog($"{args.User.Username} banned player {args.Parameters[0]} for reason: {reason}", LogLevel.Info);
+				args.Channel.SendEmbedMessage($"Banned player {args.Parameters[0]} for reason: {reason}").ConfigureAwait(false);
 				return;
 			}
 
-			args.Channel.SendMessageAsync($"Player {args.Parameters[0]} not found");
+			args.Channel.SendEmbedMessage($"Player {args.Parameters[0]} not found").ConfigureAwait(false);
 		}
 	}
 }

@@ -37,7 +37,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 
 			if (states.Length == 0)
 			{
-				args.Channel.SendMessageAsync("No players currently online");
+				args.Channel.SendEmbedMessage("No players currently online").ConfigureAwait(false);
 				return;
 			}
 
@@ -61,7 +61,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 			};
 
 			DiscordEmbed embed = epb.BuildPage(builder, page);
-			args.Channel.SendMessageAsync(embed: embed);
+			args.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
 		}
 	}
 }

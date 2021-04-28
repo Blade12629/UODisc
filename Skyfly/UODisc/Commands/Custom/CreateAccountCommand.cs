@@ -30,7 +30,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 
 			if (dul != null && dul.Accounts != null && dul.Accounts.Length >= DClient.UserManager.AccountsPerIp)
 			{
-				args.Channel.SendMessageAsync("You can't create more accounts");
+				args.Channel.SendEmbedMessage("You can't create more accounts").ConfigureAwait(false);
 				return;
 			}
 			else if (dul == null)
@@ -40,8 +40,8 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 			dul.AddAccount(acc);
 			DClient.UserManager.AddOrUpdate(dul);
 
-			args.Channel.SendMessageAsync($"Created account:\n```\n{args.Parameters[0]}\n{args.Parameters[1]}\n```");
-			LoggerFactory.GetLogger(DClient.Settings.LogChannelId).Log($"New account created: {args.Parameters[0]}");
+			args.Channel.SendEmbedMessage($"Created account:\n```\n{args.Parameters[0]}\n{args.Parameters[1]}\n```").ConfigureAwait(false);
+			DClient.DiscordLog($"New account created: {args.Parameters[0]}", LogLevel.Info);
 		}
 	}
 }

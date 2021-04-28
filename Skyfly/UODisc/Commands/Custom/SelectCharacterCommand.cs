@@ -29,7 +29,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 
 			if (dul == null || dul.Accounts == null || dul.Accounts.Length == 0)
 			{
-				args.Channel.SendMessageAsync("You need to link your account first");
+				args.Channel.SendEmbedMessage("You need to link your account first").ConfigureAwait(false);
 				return;
 			}
 
@@ -55,11 +55,11 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 
 				dul.SelectedCharacter = m;
 				DClient.UserManager.AddOrUpdate(dul);
-				args.Channel.SendMessageAsync("Selected your character");
+				args.Channel.SendEmbedMessage("Selected your character").ConfigureAwait(false);
 				return;
 			}
 
-			args.Channel.SendMessageAsync("Character not found!");
+			args.Channel.SendEmbedMessage("Character not found!").ConfigureAwait(false);
 		}
 	}
 }

@@ -25,12 +25,11 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 
 		public void Invoke(CommandHandler handler, CommandEventArgs args)
 		{
-			LoggerFactory.GetLogger(DClient.Settings.LogChannelId).Log($"{args.User.Username} started a world save!");
-			DClient.WriteLine($"{args.User.Username} started a world save!");
+			DClient.DiscordLog($"{args.User.Username} started a world save", LogLevel.Info);
 
-			args.Channel.SendMessageAsync("Saving the world...").ConfigureAwait(false).GetAwaiter().GetResult();
+			args.Channel.SendEmbedMessage("Saving the world...").ConfigureAwait(false).GetAwaiter().GetResult();
 			World.Save();
-			args.Channel.SendMessageAsync("World was saved...").ConfigureAwait(false).GetAwaiter().GetResult();
+			args.Channel.SendEmbedMessage("World was saved...").ConfigureAwait(false);
 		}
 	}
 }

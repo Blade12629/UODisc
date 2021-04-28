@@ -42,8 +42,8 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 				msg = $"{args.User.Username}: " + msg;
 
 			World.Broadcast(hue, false, msg);
-			args.Channel.SendMessageAsync("Sent message");
-			LoggerFactory.GetLogger(DClient.Settings.LogChannelId).Log($"{args.User.Username} sent a world message (did hide username?: {hideUsername})");
+			args.Channel.SendEmbedMessage("Sent message").ConfigureAwait(false);
+			DClient.DiscordLog($"{args.User.Username} sent a world message (did hide username?: {hideUsername})", LogLevel.Info);
 		}
 	}
 }

@@ -54,7 +54,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 		{
 			if (DClient.UserManager[args.User.Id] != null)
 			{
-				args.Channel.SendMessageAsync("You already linked your account!");
+				args.Channel.SendEmbedMessage("You already linked your account!").ConfigureAwait(false);
 				return;
 			}
 
@@ -64,17 +64,17 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 			{
 				if (dmChannel == null)
 				{
-					args.Channel.SendMessageAsync("Verification code already created");
+					args.Channel.SendEmbedMessage("Verification code already created").ConfigureAwait(false);
 					return;
 				}
 
-				dmChannel.SendMessageAsync($"Verification code already created: {verCode}");
+				dmChannel.SendEmbedMessage($"Verification code already created: {verCode}").ConfigureAwait(false);
 				return;
 			}
 
 			if (dmChannel == null)
 			{
-				args.Channel.SendMessageAsync("Unable to open direct message channel");
+				args.Channel.SendEmbedMessage("Unable to open direct message channel").ConfigureAwait(false);
 				return;
 			}
 
@@ -82,7 +82,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 			_verificationCodes.TryAdd(verCode, args.User.Id);
 			_verificationUsers.TryAdd(args.User.Id, verCode);
 
-			dmChannel.SendMessageAsync($"Verification code created, login onto any of your characters (in UO) and type the following (Code is Case-Sensitive): [linkaccount {verCode}");
+			dmChannel.SendEmbedMessage($"Verification code created, login onto any of your characters (in UO) and type the following (Code is Case-Sensitive): [linkaccount {verCode}").ConfigureAwait(false);
 
 			if (args.Guild != null)
 				args.Message.DeleteAsync().ConfigureAwait(false);
