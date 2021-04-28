@@ -198,7 +198,7 @@ namespace Server.Custom.Skyfly.UODisc
 			if (channel == null)
 				return false;
 
-			return await SendEmbedMessageAsync(channel, message, title);
+			return await SendEmbedMessageAsync(channel, message, title).ConfigureAwait(false);
 		}
 
 		public static async Task<bool> SendEmbedMessageAsync(DiscordChannel channel, string message, string title = null)
