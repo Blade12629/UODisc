@@ -41,6 +41,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 			DClient.UserManager.AddOrUpdate(dul);
 
 			args.Channel.SendMessageAsync($"Created account:\n```\n{args.Parameters[0]}\n{args.Parameters[1]}\n```");
+			LoggerFactory.GetLogger(DClient.Settings.LogChannelId).Log($"New account created: {args.Parameters[0]}");
 		}
 	}
 }

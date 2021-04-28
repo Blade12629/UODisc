@@ -25,6 +25,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 
 		public void Invoke(CommandHandler handler, CommandEventArgs args)
 		{
+			LoggerFactory.GetLogger(DClient.Settings.LogChannelId).Log($"{args.User.Username} started a world save!");
 			DClient.WriteLine($"{args.User.Username} started a world save!");
 
 			args.Channel.SendMessageAsync("Saving the world...").ConfigureAwait(false).GetAwaiter().GetResult();

@@ -19,6 +19,11 @@ namespace Server.Custom.Skyfly.UODisc
 
 		}
 
+		public DiscordUserLink(ulong discordUserId)
+		{
+			DiscordUserId = discordUserId;
+		}
+
 		public DiscordUserLink(params Account[] accs)
 		{
 			Accounts = accs;
@@ -26,11 +31,6 @@ namespace Server.Custom.Skyfly.UODisc
 
 		public DiscordUserLink(Account acc) : this(new Account[] { acc })
 		{
-		}
-
-		public DiscordUserLink(ulong discordUserId)
-		{
-			DiscordUserId = discordUserId;
 		}
 
 		public DiscordUserLink(Account account, ulong discordUserId) : this(account)
@@ -43,23 +43,36 @@ namespace Server.Custom.Skyfly.UODisc
 			if (acc == null)
 				return;
 
-			Account[] accs = new Account[Accounts.Length + 1];
-			
-			for (int i = 0; i < Accounts.Length; i++)
-			{
-				if (Accounts[i].Username.Equals(acc.Username))
-					return;
+			Account[] accs;
 
-				accs[i] = Accounts[i];
+			if (Accounts != null)
+			{
+				accs = new Account[(Accounts?.Length ?? 0) + 1];
+
+				for (int i = 0; i < Accounts.Length; i++)
+				{
+					if (Accounts[i].Username.Equals(acc.Username))
+						return;
+
+					accs[i] = Accounts[i];
+				}
+
+				accs[Accounts.Length] = acc;
+			}
+			else
+			{
+				accs = new Account[]
+				{
+					acc
+				};
 			}
 
-			accs[Accounts.Length] = acc;
 			Accounts = accs;
 		}
 
 		public void RemoveAccount(Account acc)
 		{
-			if (acc == null)
+			if (acc == null || Accounts == null || Accounts.Length == 0)
 				return;
 
 			List<Account> accs = new List<Account>(Accounts);

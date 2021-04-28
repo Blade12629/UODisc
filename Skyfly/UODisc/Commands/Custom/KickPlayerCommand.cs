@@ -39,6 +39,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 				states[i].Mobile.SendMessage($"You have been kicked for: {reason}");
 				states[i].Dispose();
 
+				LoggerFactory.GetLogger(DClient.Settings.LogChannelId).Log($"{args.User.Username} kicked player {args.Parameters[0]} for reason: {reason}");
 				DClient.WriteLine($"{args.User.Username} kicked player {args.Parameters[0]} for reason: {reason}");
 				args.Channel.SendMessageAsync($"Kicked player {args.Parameters[0]}");
 				return;

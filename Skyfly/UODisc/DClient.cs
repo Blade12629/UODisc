@@ -8,7 +8,6 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using Server.Custom.Skyfly.UODisc.Commands;
-using Server.Custom.Skyfly.UODisc.Chats;
 
 namespace Server.Custom.Skyfly.UODisc
 {
@@ -29,7 +28,6 @@ namespace Server.Custom.Skyfly.UODisc
 		static DiscordClient _dclient;
 		static DiscordUserManager _userMgr;
 		static CommandHandler _cmdHandler;
-		static List<BaseChatSync> _chatSyncs;
 
 		public static void Initialize()
 		{
@@ -105,9 +103,18 @@ namespace Server.Custom.Skyfly.UODisc
 				return;
 			}
 
+			ulong logChannelId = Config.Get("Discord.LogChannelId", 0ul);
+
+			if (logChannelId == 0)
+			{
+				Utility.PushColor(ConsoleColor.Yellow);
+				Console.WriteLine("Discord: Warning no log channel id found, no logging will happen");
+				Utility.PopColor();
+			}
+
 			int forceSocket = Config.Get("Discord.ForceSocket", 0);
 
-			Settings = new DClientSettings(token, guildId, commandChannelId, cmdPrefix, forceSocket);
+			Settings = new DClientSettings(token, guildId, commandChannelId, logChannelId, cmdPrefix, forceSocket);
 			_userMgr = new DiscordUserManager();
 			_cmdHandler = new CommandHandler(cmdPrefix);
 
@@ -135,8 +142,6 @@ namespace Server.Custom.Skyfly.UODisc
 			//I don't know any other way to load this after the accounts have been loaded
 			//so we will load this after the world has been loaded
 			Load();
-
-			_chatSyncs = ChatSyncs.GetDefaultChatSyncs();
 
 			_dclient.ConnectAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 		}
@@ -400,18 +405,6 @@ namespace Server.Custom.Skyfly.UODisc
 
 		static async Task ClientReady(ReadyEventArgs e)
 		{
-			int total = 0;
-			for (int i = 0; i < _chatSyncs.Count; i++)
-			{
-				_chatSyncs[i].Start();
-
-				if (_chatSyncs[i].IsRunning)
-					total++;
-			}
-
-			if (_chatSyncs.Count > 0)
-				WriteLine($"Started a total of {total} chat sync handlers");
-
 			IsReady = true;
 			WriteLine("Client is ready");
 		}

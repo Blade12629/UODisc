@@ -43,6 +43,7 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 
 			World.Broadcast(hue, false, msg);
 			args.Channel.SendMessageAsync("Sent message");
+			LoggerFactory.GetLogger(DClient.Settings.LogChannelId).Log($"{args.User.Username} sent a world message (did hide username?: {hideUsername})");
 		}
 	}
 }
