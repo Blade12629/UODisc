@@ -107,7 +107,7 @@ namespace Server.Custom.Skyfly.UODisc
 				while(s.Length > _maxMessageLength)
 				{
 					yield return s.Substring(0, _maxMessageLength);
-					yield return (s = s.Remove(0, _maxMessageLength));
+					s = s.Remove(0, _maxMessageLength);
 				}
 
 				if (string.IsNullOrEmpty(s))
