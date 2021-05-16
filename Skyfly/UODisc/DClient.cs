@@ -15,6 +15,9 @@ namespace Server.Custom.Skyfly.UODisc
 	public static class DClient
 	{
 		public static event Action<MessageCreateEventArgs> OnMessageRecieved;
+		public static event Action<MessageReactionAddEventArgs> OnMessageReactionAdded;
+		public static event Action<MessageReactionRemoveEventArgs> OnMessageReactionRemoved;
+		public static event Action<MessageReactionsClearEventArgs> OnMessageReactionCleared;
 
 		public static string SaveFolder => System.IO.Path.Combine(Environment.CurrentDirectory, "Saves", "Discord");
 		public static char InvisibleChar => '‎';
@@ -436,6 +439,9 @@ namespace Server.Custom.Skyfly.UODisc
 			_dclient.ClientErrored += async e => await ClientError(e).ConfigureAwait(false);
 			_dclient.Ready += async e => await ClientReady(e).ConfigureAwait(false);
 			_dclient.MessageCreated += async e => await ClientMessage(e).ConfigureAwait(false);
+			_dclient.MessageReactionAdded += async e => await ReactionAdded(e).ConfigureAwait(false);
+			_dclient.MessageReactionRemoved += async e => await ReactionRemoved(e).ConfigureAwait(false);
+			_dclient.MessageReactionsCleared += async e => await ReactionsCleared(e).ConfigureAwait(false);
 		}
 
 		static async Task ClientMessage(MessageCreateEventArgs e)
@@ -464,6 +470,21 @@ namespace Server.Custom.Skyfly.UODisc
 		{
 			IsReady = false;
 			Error(e.Exception);
+		}
+
+		static async Task ReactionAdded(MessageReactionAddEventArgs e)
+		{
+			OnMessageReactionAdded?.Invoke(e);
+		}
+
+		static async Task ReactionRemoved(MessageReactionRemoveEventArgs e)
+		{
+			OnMessageReactionRemoved?.Invoke(e);
+		}
+
+		static async Task ReactionsCleared(MessageReactionsClearEventArgs e)
+		{
+			OnMessageReactionCleared?.Invoke(e);
 		}
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 	}

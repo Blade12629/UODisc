@@ -9,6 +9,7 @@ namespace Server.Custom.Skyfly.UODisc
 {
 	public static class LoggerFactory
 	{
+		//200 is the minimum the logger will accept, anything below it will be rejected and 200 ms will be chosen instead
 		static int _loggerDelayMS => 200;
 		static ConcurrentDictionary<ulong, ILogger> _loggers;
 
