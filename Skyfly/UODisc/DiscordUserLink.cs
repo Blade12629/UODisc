@@ -138,7 +138,7 @@ namespace Server.Custom.Skyfly.UODisc
 						{
 							List<Account> accs = new List<Account>(length);
 
-							for (int i = 0; i < accs.Count; i++)
+							for (int i = 0; i < length; i++)
 							{
 								string accName = r.ReadString();
 								Account acc = Accounting.Accounts.GetAccount(accName) as Account;
