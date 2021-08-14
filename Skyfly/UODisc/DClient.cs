@@ -227,7 +227,7 @@ namespace Server.Custom.Skyfly.UODisc
 			if (msg == null)
 				return false;
 
-			await msg.ModifyAsync(message == null ? default : message, embed == null ? default : embed).ConfigureAwait(false);
+			await msg.ModifyAsync(message ?? new Optional<string>(), embed ?? new Optional<DiscordEmbed>()).ConfigureAwait(false);
 
 			return true;
 		}
@@ -239,7 +239,7 @@ namespace Server.Custom.Skyfly.UODisc
 			if (msg == null)
 				return false;
 
-			await msg.ModifyAsync(message == null ? default : message, embed == null ? default : embed).ConfigureAwait(false);
+			await msg.ModifyAsync(message ?? new Optional<string>(), embed ?? new Optional<DiscordEmbed>()).ConfigureAwait(false);
 
 			return true;
 		}
