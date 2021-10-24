@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,30 +33,22 @@ namespace Server.Custom.Skyfly.UODisc.Commands.Custom
 				return;
 			}
 
-			for (int i = 0; i < World.Mobiles.Count; i++)
+			for (int i = 0; i < dul.Accounts.Length; i++)
 			{
-				Mobile m = World.Mobiles.ElementAt(i).Value;
+				var acc = dul.Accounts[i];
 
-				if (!m.Player || !m.Name.Equals(args.Parameters[0]))
-					continue;
-
-				bool endAndContinue = false;
-				for (int x = 0; x < dul.Accounts.Length; x++)
+				for (int x = 0; x < acc.Length; x++)
 				{
-					if (m.Account.Username.Equals(dul.Accounts[x].Username))
+					Mobile m = acc[x];
+
+					if (m.Name.Equals(args.Parameters[0]))
 					{
-						endAndContinue = true;
-						break;
+						dul.SelectedCharacter = m;
+						DClient.UserManager.AddOrUpdate(dul);
+						args.Channel.SendEmbedMessage("Selected your character").ConfigureAwait(false);
+						return;
 					}
 				}
-
-				if (endAndContinue)
-					continue;
-
-				dul.SelectedCharacter = m;
-				DClient.UserManager.AddOrUpdate(dul);
-				args.Channel.SendEmbedMessage("Selected your character").ConfigureAwait(false);
-				return;
 			}
 
 			args.Channel.SendEmbedMessage("Character not found!").ConfigureAwait(false);
